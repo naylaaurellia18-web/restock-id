@@ -40,6 +40,11 @@ function etaCalc(st, stock) {
 P.dashboard = function () {
   var st = Store.computeStatsAll();
   var c = statusCounts();
+  var selId = DASH_SEL;
+  if (!selId || !Store.getProduct(selId)) {
+    var first = Store.products().find(function (p) { return Store.computeStats(p).enough; });
+    selId = first ? first.id : (Store.products()[0] ? Store.products()[0].id : "");
+  }
   var alerts = [];
   Store.products().forEach(function (p) {
     var s = statusOf(p, st[p.id]);
@@ -87,8 +92,9 @@ P.dashboard = function () {
 
     '<div class="card card-pad"><h3 class="card-title">Tren Penjualan Harian</h3>' +
     '<p class="card-sub">30 hari terakhir.</p>' +
-    '<div class="row mb12"><label style="font-size:12.5px;font-weight:600">Pilih produk:</label>' + productSelect(DASH_SEL, "dashProd") +
-    '<button class="btn btn-ghost btn-sm" onclick="A.dashProduct(this.previousElementSibling.value)">Tampilkan</button></div>' +
+    '<div class="row mb12"><label style="font-size:12.5px;font-weight:600" for="psel_dashProd">Pilih produk:</label>' +
+    productSelect(selId, "dashProd").replace('name="dashProd"', 'name="dashProd" onchange="A.dashProduct(this.value)"') +
+    "</div>" +
     '<div id="dashTrend" class="chart-box"></div></div>' +
 
     '</div>';
@@ -98,12 +104,6 @@ P.dashboard = function () {
     '<div id="dashStockRop" class="chart-box"></div></div>';
 
   document.getElementById("content").innerHTML = html;
-
-  var selId = DASH_SEL;
-  if (!selId) {
-    var first = Store.products().find(function (p) { return Store.computeStats(p).enough; });
-    selId = first ? first.id : "";
-  }
   renderTrend(selId);
   renderStockVsRop();
 };
@@ -155,18 +155,40 @@ function renderStockVsRop() {
 
 P.products = function () {
   var html = '<div class="row-between mb12">' +
-    '<div class="row">' +
-    '<input type="search" id="prodSearch" placeholder="Cari nama/SKU..." style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;min-width:220px" oninput="A.filterProducts()">' +
+    '<div class="text-muted" style="font-size:12.5px">Kelola data produk, harga, dan lead time pemasok.</div>' +
+    '<button class="btn btn-primary" onclick="A.modalProduct()">+ Tambah Produk</button>' +
+    "</div>";
+
+  html += '<div class="filter-bar">' +
+    '<div class="filter-field filter-grow">' +
+    '<label for="prodSearch">Cari</label>' +
+    '<input type="search" id="prodSearch" placeholder="Nama atau SKU..." oninput="A.filterProducts()">' +
+    "</div>" +
+    '<div class="filter-field">' +
+    '<label for="prodCat">Kategori</label>' +
     '<select id="prodCat" onchange="A.filterProducts()"><option value="">Semua kategori</option>' + categoriesOpt() + "</select>" +
+    "</div>" +
+    '<div class="filter-field">' +
+    '<label for="prodStat">Status</label>' +
     '<select id="prodStat" onchange="A.filterProducts()"><option value="">Semua status</option><option value="aman">Aman</option><option value="waspada">Waspada</option><option value="reorder">Perlu reorder</option><option value="habis">Habis</option><option value="nodata">Data belum cukup</option></select>' +
     "</div>" +
-    '<button class="btn btn-primary" onclick="A.modalProduct()">+ Tambah Produk</button>' +
+    '<div class="filter-field filter-action">' +
+    '<label>&nbsp;</label>' +
+    '<button class="btn btn-ghost" type="button" onclick="A.resetProdFilter()">Reset</button>' +
+    "</div>" +
     "</div>";
 
   html += '<div class="card"><div class="table-wrap"><table class="tbl" id="prodTbl"><thead><tr>' +
     "<th>SKU</th><th>Nama Produk</th><th>Kategori</th><th class='num'>Stok</th><th>Satuan</th><th>Status</th><th class='num'>ROP</th><th class='num'>Harga Jual</th><th>Info</th><th>Aksi</th>" +
     "</tr></thead><tbody></tbody></table></div></div>";
   document.getElementById("content").innerHTML = html;
+  A.filterProducts();
+};
+
+A.resetProdFilter = function () {
+  document.getElementById("prodSearch").value = "";
+  document.getElementById("prodCat").value = "";
+  document.getElementById("prodStat").value = "";
   A.filterProducts();
 };
 
@@ -215,7 +237,9 @@ A.filterProducts = function () {
       "</div></td></tr>";
   }).join("");
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding:28px">Tidak ada produk yang cocok.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding:28px">' +
+      (Store.products().length ? "Tidak ada produk yang cocok dengan filter." : "Belum ada produk. Klik \u201c+ Tambah Produk\u201d untuk memulai.") +
+      "</td></tr>";
   }
 };
 
@@ -260,8 +284,8 @@ A.modalProduct = function (id) {
   openModal({
     title: title,
     body: productFormHTML(p),
-    foot: '<button class="btn btn-ghost" onclick="closeModal()">Batal</button>' +
-      '<button class="btn btn-primary" onclick="A.saveProduct(event)">Simpan</button>'
+    foot: '<button class="btn btn-ghost" type="button" onclick="closeModal()">Batal</button>' +
+      '<button class="btn btn-primary" type="button" onclick="A.saveProduct(event)">Simpan</button>'
   });
 };
 
@@ -333,9 +357,9 @@ A.detailProduct = function (id) {
     title: title,
     wide: true,
     body: body,
-    foot: '<button class="btn btn-ghost" onclick="closeModal()">Tutup</button>' +
-      '<button class="btn btn-outline" onclick="A.printCalc(\'' + id + '\')">Cetak</button>' +
-      '<button class="btn btn-primary" onclick="A.quickOrder(\'' + id + '\')">Buat Pesanan</button>'
+    foot: '<button class="btn btn-ghost" type="button" onclick="closeModal()">Batal</button>' +
+      '<button class="btn btn-outline" type="button" onclick="A.printCalc(\'' + id + '\')">Cetak</button>' +
+      '<button class="btn btn-primary" type="button" onclick="A.quickOrder(\'' + id + '\')">Buat Pesanan</button>'
   });
   if (st.enough) {
     renderBar("detSales", serDates(p).map(fmtDateLabel), serDates(p).map(function (d) { return dailyQty(p, d); }), null, {height: 230, color: COLOR.primary});
@@ -421,7 +445,7 @@ P.transactions = function () {
     '<p class="card-sub">Catat penerimaan barang; stok otomatis bertambah.</p>' +
     '<form class="form-grid" onsubmit="A.submitTx(event,this)">' +
     '<input type="hidden" name="type" value="in">' +
-    '<div class="field full">' + productSelect("", "productId") + "</div>" +
+    '<div class="field full"><label>Produk *</label>' + productSelect("", "productId", "", "txProdIn") + "</div>" +
     '<div class="field"><label>Jumlah *</label><input name="qty" type="number" min="1" step="1" required></div>' +
     '<div class="field"><label>Tanggal</label><input name="date" type="date" value="' + fmtDateStr(new Date()) + '"></div>' +
     '<div class="field full"><label>Keterangan</label><input name="note" placeholder="cth: Pembelian dari distributor"></div>' +
@@ -432,7 +456,7 @@ P.transactions = function () {
     '<p class="card-sub">Catat penjualan; stok otomatis berkurang. Tidak boleh melebihi stok.</p>' +
     '<form class="form-grid" onsubmit="A.submitTx(event,this)">' +
     '<input type="hidden" name="type" value="out">' +
-    '<div class="field full">' + productSelect("", "productId") + "</div>" +
+    '<div class="field full"><label>Produk *</label>' + productSelect("", "productId", "", "txProdOut") + "</div>" +
     '<div class="field"><label>Jumlah *</label><input name="qty" type="number" min="1" step="1" required></div>' +
     '<div class="field"><label>Tanggal</label><input name="date" type="date" value="' + fmtDateStr(new Date()) + '"></div>' +
     '<div class="field full"><label>Keterangan</label><input name="note" placeholder="cth: Penjualan tunai"></div>' +
@@ -461,7 +485,7 @@ P.transactions = function () {
     "</div>" +
     '<div class="filter-field filter-grow">' +
     '<label for="txProd">Produk</label>' +
-    productSelect("", "txProd", "Semua produk").replace('id="psel_txProd"', 'id="txProd"').replace('name="txProd"', 'name="txProd" onchange="A.filterTx()"') +
+    productSelect("", "txProd", "Semua produk", "txProd").replace('name="txProd"', 'name="txProd" onchange="A.filterTx()"') +
     "</div>" +
     '<div class="filter-field">' +
     '<label for="txType">Jenis</label>' +
@@ -573,7 +597,7 @@ A.submitTx = function (evt, form) {
     toast(out.error, "error");
     return;
   }
-  toast("Transaksi dicatat (" + (f.type === "in" ? "masuk" : "keluar") + " +" + (f.type === "in" ? " " : " ") + fmtNum(f.qty) + " " + esc(out.product.unit) + ". Stok kini " + fmtNum(out.product.stock) + ").", "success");
+  toast("Transaksi dicatat (" + (f.type === "in" ? "masuk" : "keluar") + " " + (f.type === "in" ? "+" : "\u2212") + fmtNum(f.qty) + " " + esc(out.product.unit) + ". Stok kini " + fmtNum(out.product.stock) + ").", "success");
   refreshCurrent();
 };
 
@@ -711,7 +735,11 @@ P.reorder = function () {
 
 function ropTblRows() {
   var st = Store.computeStatsAll();
-  return Store.products().map(function (p) {
+  var prods = Store.products();
+  if (!prods.length) {
+    return '<tr><td colspan="12" class="text-center text-muted" style="padding:28px">Belum ada produk. Tambahkan produk terlebih dahulu.</td></tr>';
+  }
+  return prods.map(function (p) {
     var s = st[p.id];
     return "<tr>" +
       '<td class="mono">' + esc(p.sku) + "</td>" +
@@ -787,7 +815,7 @@ function renderNotifList() {
     "</div></div>";
 
   if (!list.length) {
-    el.innerHTML = emptyState("Belum ada notifikasi pemesanan ulang.");
+    el.innerHTML = html + emptyState("Belum ada notifikasi pemesanan ulang.");
     return;
   }
   list.forEach(function (n) {
@@ -818,7 +846,9 @@ A.setNotif = function (id, status) {
 
 A.openPO = function () {
   var po = Store.buildPurchaseOrder();
+  A._currentPO = po;
   if (!po.items.length) {
+    A._currentPO = null;
     toast("Tidak ada notifikasi baru untuk dimasukkan ke daftar pesanan.", "error");
     return;
   }
@@ -837,10 +867,10 @@ A.openPO = function () {
     body: '<p class="text-muted">Daftar pemesanan ulang dari notifikasi berstatus <b>Baru</b>. Sesuaikan jumlah jika perlu, lalu tandai sebagai &ldquo;Sudah Dipesan&rdquo;.</p>' +
       '<div class="table-wrap"><table class="tbl"><thead><tr><th>SKU</th><th>Nama</th><th>Satuan</th><th>Jumlah</th><th class="num">Harga Beli</th><th class="num">Subtotal</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
       "<p class='text-right mt8'><b>Total: " + cur(po.total) + "</b></p>",
-    foot: '<button class="btn btn-ghost" onclick="closeModal()">Batal</button>' +
-      '<button class="btn btn-outline" onclick="A.downloadPO()">Unduh CSV</button>' +
-      '<button class="btn btn-outline" onclick="A.printPO()">Cetak PO</button>' +
-      '<button class="btn btn-primary" onclick="A.savePO()">Simpan &amp; Tandai Dipesan</button>'
+    foot: '<button class="btn btn-ghost" type="button" onclick="closeModal()">Batal</button>' +
+      '<button class="btn btn-outline" type="button" onclick="A.downloadPO()">Unduh CSV</button>' +
+      '<button class="btn btn-outline" type="button" onclick="A.printPO()">Cetak PO</button>' +
+      '<button class="btn btn-primary" type="button" onclick="A.savePO()">Simpan &amp; Tandai Dipesan</button>'
   });
 };
 
@@ -856,13 +886,15 @@ A.savePO = function () {
     n.status = "dipesan";
     updated++;
   });
+  Store._persistSoon();
+  A._currentPO = null;
   closeModal();
   toast(updated + " notifikasi ditandai sebagai 'Sudah Dipesan'.", "success");
   refreshCurrent();
 };
 
 A.printPO = function () {
-  var po = Store.buildPurchaseOrder();
+  var po = A._currentPO || Store.buildPurchaseOrder();
   var rows = po.items.map(function (it, i) {
     var inp = document.getElementById("poq_" + it.notifId);
     var q = inp ? (Number(inp.value) || it.qty) : it.qty;
@@ -883,7 +915,7 @@ A.printPO = function () {
 };
 
 A.downloadPO = function () {
-  var po = Store.buildPurchaseOrder();
+  var po = A._currentPO || Store.buildPurchaseOrder();
   var rows = po.items.map(function (it) {
     var inp = document.getElementById("poq_" + it.notifId);
     var q = inp ? (Number(inp.value) || it.qty) : it.qty;
@@ -941,8 +973,14 @@ function syncSimParamLabel() {
 }
 
 function insertSimEmpty() {
+  removeSimEmpty();
   var cont = document.getElementById("content");
-  cont.insertAdjacentHTML("beforeend", '<div class="section-gap">' + emptyState("Klik \u201cJalankan Simulasi\u201d untuk membandingkan kinerja metode manual vs Reorder Point.") + "</div>");
+  cont.insertAdjacentHTML("beforeend", '<div id="simEmpty" class="section-gap">' + emptyState("Klik \u201cJalankan Simulasi\u201d untuk membandingkan kinerja metode manual vs Reorder Point.") + "</div>");
+}
+
+function removeSimEmpty() {
+  var e = document.getElementById("simEmpty");
+  if (e) e.remove();
 }
 
 A.runSim = function (evt) {
@@ -964,6 +1002,7 @@ A.runSim = function (evt) {
 function renderSimResults() {
   var sim = Store.sim;
   var cont = document.getElementById("content");
+  removeSimEmpty();
   if (document.getElementById("simResultRoot")) {
     document.getElementById("simResultRoot").remove();
   }
@@ -1141,7 +1180,11 @@ function renderReport() {
 
 function reportStock() {
   var st = Store.computeStatsAll();
-  var rows = Store.products().map(function (p) {
+  var prods = Store.products();
+  if (!prods.length) {
+    return '<div class="card card-pad"><h3 class="card-title">Laporan Stok Saat Ini</h3>' + emptyState("Belum ada produk untuk dilaporkan.") + "</div>";
+  }
+  var rows = prods.map(function (p) {
     var s = statusOf(p, st[p.id]);
     return "<tr" + ([ "habis", "reorder" ].indexOf(s) >= 0 ? ' class="crit"' : "") + ">" +
       '<td class="mono">' + esc(p.sku) + "</td>" +
@@ -1181,6 +1224,9 @@ function reportMoveTable(from, to, prod, type) {
     return true;
   });
   list.sort(function (a, b) { return b.date.localeCompare(a.date); });
+  if (!list.length) {
+    return '<div class="card card-pad"><div class="row-between mb12"><h3 class="card-title" style="margin:0">Laporan Pergerakan Stok</h3></div>' + emptyState("Tidak ada transaksi pada filter ini.") + "</div>";
+  }
   var rows = list.slice(0, 500).map(function (t) {
     var p = mapP[t.productId];
     var isIn = t.type === "in";
@@ -1198,6 +1244,9 @@ function reportMoveTable(from, to, prod, type) {
 }
 
 function reportROP() {
+  if (!Store.products().length) {
+    return '<div class="card card-pad"><h3 class="card-title">Laporan Hasil Perhitungan Reorder Point</h3>' + emptyState("Belum ada produk untuk dihitung.") + "</div>";
+  }
   return '<div class="card card-pad"><div class="row-between mb12">' +
     '<h3 class="card-title" style="margin:0">Laporan Hasil Perhitungan Reorder Point</h3>' +
     '<div class="row"><button class="btn btn-outline btn-sm" onclick="A.exportRepRop()">Unduh CSV</button><button class="btn btn-outline btn-sm" onclick="A.printRepRop()">Cetak / PDF</button></div></div>' +
@@ -1351,7 +1400,7 @@ P.settings = function () {
     '<input type="file" id="backupFile" accept="application/json,.json" class="hidden" onchange="A.restoreBackup(this)">' +
     '<button class="btn btn-danger" onclick="A.resetData()">Reset ke Data Contoh</button>' +
     "</div>" +
-    '<p class="helptext mb8 mt8">Reset akan menghapus seluruh perubahan dan mengembalikan purwarupa ke data contoh (13 produk, 90 hari riwayat penjualan). Semua data tersimpan di memori peramban (tanpa server).</p></div>';
+    '<p class="helptext mb8 mt8">Reset akan menghapus seluruh perubahan dan mengembalikan purwarupa ke data contoh (13 produk, 90 hari riwayat penjualan). Data tersimpan aman di server dan disinkronkan otomatis setiap perubahan.</p></div>';
 
   html += '<div class="card card-pad section-gap"><h3 class="card-title">Tentang Purwarupa</h3>' +
     '<p class="card-sub">Sistem Manajemen Stok Otomatis berbasis Reorder Point untuk UMKM.</p>' +
@@ -1449,8 +1498,8 @@ A.quickOrder = function (productId) {
       '<div class="field"><label>Tanggal terima</label><input type="date" id="qoDate" value="' + fmtDateStr(new Date()) + '"></div>' +
       '<div class="field"><label>Keterangan</label><input id="qoNote" value="Pembelian restok" placeholder=""></div>' +
       "</div>",
-    foot: '<button class="btn btn-ghost" onclick="closeModal()">Batal</button>' +
-      '<button class="btn btn-primary" onclick="A.confirmOrder(\'' + productId + '\')">Catat &amp; Tambah Stok</button>'
+    foot: '<button class="btn btn-ghost" type="button" onclick="closeModal()">Batal</button>' +
+      '<button class="btn btn-primary" type="button" onclick="A.confirmOrder(\'' + productId + '\')">Catat &amp; Tambah Stok</button>'
   });
 };
 

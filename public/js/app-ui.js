@@ -89,11 +89,11 @@ function closeModal() {
 
 function confirmDialog(title, msg, onYes, okLabel, danger) {
   var label = okLabel || "Ya, lanjutkan";
-  var btn = danger ? '" class="btn btn-danger' : '" class="btn btn-primary';
+  var cls = danger ? "btn btn-danger" : "btn btn-primary";
   openModal({
     title: title,
     body: "<p>" + msg + "</p>",
-    foot: '<button class="btn btn-ghost" onclick="closeModal()">Batal</button><button' + btn + ' onclick="A.confirmYes(fn)">' + esc(label) + "</button>"
+    foot: '<button class="btn btn-ghost" type="button" onclick="closeModal()">Batal</button><button type="button" class="' + cls + '" onclick="A.confirmYes()">' + esc(label) + "</button>"
   });
   A.confirmYes = function () {
     closeModal();
@@ -158,7 +158,13 @@ function printHTML(title, bodyHTML) {
     "<hr>" + bodyHTML + "</body></html>";
   iframe.setAttribute("srcdoc", doc);
   iframe.onload = function () {
-    try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch (e) {}
+    try {
+      var w = iframe.contentWindow;
+      w.onafterprint = function () { iframe.hidden = true; };
+      w.focus();
+      w.print();
+      setTimeout(function () { iframe.hidden = true; }, 8000);
+    } catch (e) { iframe.hidden = true; }
   };
   iframe.hidden = false;
 }
@@ -343,10 +349,11 @@ function statNumber(x) {
   return fmtNum(v);
 }
 
-function productSelect(selectedId, name, includeAll) {
+function productSelect(selectedId, name, includeAll, idOverride) {
   var opts = includeAll ? '<option value="">' + esc(includeAll) + "</option>" : "";
   Store.products().forEach(function (p) {
     opts += '<option value="' + esc(p.id) + '"' + (p.id === selectedId ? " selected" : "") + ">" + esc(p.sku + " - " + p.name) + "</option>";
   });
-  return '<select name="' + (name || "productId") + '" id="psel_' + (name || "productId") + '">' + opts + "</select>";
+  var sid = idOverride !== undefined ? idOverride : "psel_" + (name || "productId");
+  return '<select name="' + (name || "productId") + '"' + (sid ? ' id="' + sid + '"' : "") + ">" + opts + "</select>";
 }

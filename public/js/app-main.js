@@ -208,8 +208,14 @@ document.addEventListener("DOMContentLoaded", function () {
   $("bellBtn").addEventListener("click", function () {
     if (App.authed) goto("notifications");
   });
-  $("navToggle").addEventListener("click", function () {
+  $("navToggle").addEventListener("click", function (e) {
+    e.stopPropagation();
     document.body.classList.toggle("nav-open");
+  });
+  document.addEventListener("click", function (e) {
+    if (!document.body.classList.contains("nav-open")) return;
+    if (e.target.closest && (e.target.closest("#sidebar") || e.target.closest("#navToggle"))) return;
+    document.body.classList.remove("nav-open");
   });
 
   showBoot(true);

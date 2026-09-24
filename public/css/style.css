@@ -458,5 +458,15 @@ input.invalid{border-color:var(--red);background:#fef2f2}
 
 /* ===== PRINT ===== */
 @media print{
-  body *{visibility:hidden}
+  #sidebar,#topbar,#pagefoot,#modal-root,#toast-root,.alert-banner{display:none!important}
+  #main{margin:0!important;min-height:0}
+  #content{padding:0!important}
+  body{background:#fff}
+  .card,.stat-card,.alert-item,.verdict{box-shadow:none!important;break-inside:avoid}
+  .tbl th{background:#f1f5f9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #print-frame:not([hidden]){
+    display:block!important;position:fixed;left:0;top:0;width:100%;height:100%;
+    border:0;z-index:2147483647;background:#fff
+  }
+  #print-frame:not([hidden]) ~ *{display:none!important}
 }
