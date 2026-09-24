@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restock.id &mdash; Sistem Manajemen Stok Reorder Point</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-icon">S</div>
+      <div class="brand-text"><strong>Restock.id</strong><span>Sistem Stok ROP UMKM</span></div>
+    </div>
+    <nav id="nav" aria-label="Navigasi utama"></nav>
+    <div class="sidebar-foot">
+      <div class="sf-label">Purwarupa Penelitian</div>
+      <div class="sf-title">&ldquo;Rancang Bangun Sistem Manajemen Stok Otomatis Berbasis Reorder Point untuk Meningkatkan Efisiensi Pengendalian Persediaan pada UMKM&rdquo;</div>
+    </div>
+  </aside>
+  <div id="main">
+    <header id="topbar">
+      <button id="navToggle" class="icon-btn" title="Buka menu" aria-label="Buka menu">&#9776;</button>
+      <div class="page-head">
+        <h1 id="pageTitle">Dashboard</h1>
+        <p id="pageSubtitle"></p>
+      </div>
+      <div class="topbar-right">
+        <button id="bellBtn" class="btn btn-notif" title="Lihat notifikasi pemesanan ulang">Notifikasi <span id="bellBadge" class="badge badge-red">0</span></button>
+        <div class="store-chip"><strong id="storeName">&ndash;</strong></div>
+      </div>
+    </header>
+    <main id="content"></main>
+    <footer id="pagefoot"></footer>
+  </div>
+</div>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+<iframe id="print-frame" sandbox="allow-same-origin allow-modals" hidden></iframe>
+<script src="js/app-data.js"></script>
+<script src="js/app-calc.js"></script>
+<script src="js/app-store.js"></script>
+<script src="js/app-ui.js"></script>
+<script src="js/app-pages.js"></script>
+<script src="js/app-main.js"></script>
+</body>
+</html>
