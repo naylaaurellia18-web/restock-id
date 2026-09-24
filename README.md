@@ -18,6 +18,7 @@ Purwarupa aplikasi web pengendalian persediaan untuk UMKM. Sistem menghitung **R
 | Pengujian | Simulasi Manual vs ROP, metrik stockout/fill rate/stok & biaya, akurasi notifikasi |
 | Laporan | Stok saat ini, pergerakan stok, hasil perhitungan ROP (ekspor CSV / cetak) |
 | Pengaturan | Parameter sistem (service level, lead time, biaya pesan/simpan), backup JSON |
+| Autentikasi | Login & registrasi akun, sesi aman (token), akun demo `admin`/`admin123` |
 
 ## Persyaratan
 
@@ -34,6 +35,12 @@ node server.js
 
 Kemudian buka `http://localhost:3000`.
 
+**Login demo (akun otomatis dibuat):**
+- Username: `admin`
+- Password: `admin123`
+
+Atau daftar akun baru lewat halaman **Daftar**.
+
 - Data otomatis dibuat pertama kali saat aplikasi dibuka (data contoh) dan tersimpan di `data/restock.sqlite`.
 - Data tetap tersimpan meskipun browser ditutup atau server dimulai ulang.
 - Untuk akses dari perangkat lain dalam satu WiFi/LAN, gunakan alamat IP yang ditampilkan saat server dijalankan (mis. `http://192.168.1.5:3000`).
@@ -49,6 +56,8 @@ Skema (di `server.js`):
 | `notifications` | notifikasi pemesanan ulang beserta kuantitas yang disarankan |
 | `settings` | parameter sistem (JSON) |
 | `meta` | penanda urutan ID (tx, notifikasi, PO) |
+| `users` | akun pengguna (username, email, hash password) |
+| `sessions` | sesi login (token + masa berlaku) |
 
 Data juga dapat diekspor/impor sebagai JSON dari halaman **Pengaturan** (fitur backup untuk sidang).
 

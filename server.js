@@ -4,6 +4,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const crypto = require("crypto");
 const { DatabaseSync } = require("node:sqlite");
 
 const ROOT = __dirname;
@@ -82,7 +83,85 @@ db.exec(`
     mkey TEXT PRIMARY KEY,
     mvalue TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    salt TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'user',
+    created_at TEXT NOT NULL DEFAULT ''
+  );
+  CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT '',
+    expires_at TEXT NOT NULL DEFAULT ''
+  );
+  CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 `);
+
+/* ============ AUTH HELPERS ============ */
+const SESSION_DAYS = 30;
+
+function hashPassword(password, salt) {
+  return crypto.scryptSync(String(password), salt, 64).toString("hex");
+}
+
+function makeId(prefix) {
+  return prefix + "_" + crypto.randomBytes(8).toString("hex");
+}
+
+function publicUser(r) {
+  if (!r) return null;
+  return { id: r.id, username: r.username, email: r.email, name: r.name, role: r.role, createdAt: r.created_at };
+}
+
+function createSession(userId) {
+  const token = crypto.randomBytes(32).toString("hex");
+  const now = new Date();
+  const exp = new Date(now.getTime() + SESSION_DAYS * 86400000);
+  db.prepare("INSERT INTO sessions (token, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)")
+    .run(token, userId, now.toISOString(), exp.toISOString());
+  return token;
+}
+
+function getUserByToken(token) {
+  if (!token) return null;
+  const row = db.prepare("SELECT * FROM sessions WHERE token = ?").get(String(token));
+  if (!row) return null;
+  if (row.expires_at && new Date(row.expires_at).getTime() < Date.now()) {
+    try { db.prepare("DELETE FROM sessions WHERE token = ?").run(token); } catch (e) {}
+    return null;
+  }
+  const u = db.prepare("SELECT * FROM users WHERE id = ?").get(row.user_id);
+  return u || null;
+}
+
+function tokenFromReq(req) {
+  const h = req.headers["x-session-token"] || req.headers["X-Session-Token"];
+  if (h) return String(h).trim();
+  const auth = req.headers["authorization"] || "";
+  if (/^Bearer\s+/i.test(auth)) return auth.replace(/^Bearer\s+/i, "").trim();
+  return "";
+}
+
+function seedDefaultUser() {
+  const count = db.prepare("SELECT COUNT(*) AS c FROM users").get().c;
+  if (count > 0) return;
+  const salt = crypto.randomBytes(16).toString("hex");
+  db.prepare(`INSERT INTO users (id, username, email, name, password_hash, salt, role, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+    .run(makeId("u"), "admin", "admin@restock.id", "Administrator",
+      hashPassword("admin123", salt), salt, "admin", new Date().toISOString());
+  console.log("Akun demo dibuat: admin / admin123");
+}
+
+function validUsername(u) { return /^[a-zA-Z0-9_.-]{3,32}$/.test(String(u || "")); }
+function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || "")); }
+
+seedDefaultUser();
 
 function rowToProduct(r) {
   return {
@@ -194,6 +273,95 @@ function readBody(req) {
   });
 }
 
+function readJSONBody(req) {
+  return readBody(req).then(function (text) {
+    if (!text) return {};
+    try { return JSON.parse(text); } catch (e) { throw new Error("JSON tidak valid"); }
+  });
+}
+
+function handleAuth(req, res, pathname) {
+  // POST /api/auth/register
+  if (req.method === "POST" && pathname === "/api/auth/register") {
+    readJSONBody(req).then(function (body) {
+      const name = String(body.name || "").trim();
+      const username = String(body.username || "").trim();
+      const email = String(body.email || "").trim().toLowerCase();
+      const password = String(body.password || "");
+      if (!name) return sendJSON(res, 400, { error: "Nama lengkap wajib diisi." });
+      if (!validUsername(username)) return sendJSON(res, 400, { error: "Username 3-32 karakter (huruf, angka, _ . -)." });
+      if (!validEmail(email)) return sendJSON(res, 400, { error: "Email tidak valid." });
+      if (password.length < 6) return sendJSON(res, 400, { error: "Password minimal 6 karakter." });
+      const existsU = db.prepare("SELECT 1 FROM users WHERE username = ?").get(username);
+      if (existsU) return sendJSON(res, 409, { error: "Username sudah dipakai." });
+      const existsE = db.prepare("SELECT 1 FROM users WHERE email = ?").get(email);
+      if (existsE) return sendJSON(res, 409, { error: "Email sudah terdaftar." });
+      const salt = crypto.randomBytes(16).toString("hex");
+      const id = makeId("u");
+      db.prepare(`INSERT INTO users (id, username, email, name, password_hash, salt, role, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run(id, username, email, name, hashPassword(password, salt), salt, "user", new Date().toISOString());
+      const token = createSession(id);
+      const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+      sendJSON(res, 200, { ok: true, token: token, user: publicUser(user) });
+    }).catch(function (err) {
+      sendJSON(res, 400, { error: String(err.message || err) });
+    });
+    return true;
+  }
+
+  // POST /api/auth/login
+  if (req.method === "POST" && pathname === "/api/auth/login") {
+    readJSONBody(req).then(function (body) {
+      const id = String(body.username || "").trim();
+      const password = String(body.password || "");
+      if (!id || !password) return sendJSON(res, 400, { error: "Username/email dan password wajib diisi." });
+      let user = db.prepare("SELECT * FROM users WHERE username = ?").get(id);
+      if (!user) user = db.prepare("SELECT * FROM users WHERE email = ?").get(id.toLowerCase());
+      if (!user) return sendJSON(res, 401, { error: "Akun tidak ditemukan." });
+      const hash = hashPassword(password, user.salt);
+      const bufHash = Buffer.from(hash, "hex");
+      const bufStored = Buffer.from(user.password_hash, "hex");
+      const ok = bufHash.length === bufStored.length && crypto.timingSafeEqual(bufHash, bufStored);
+      if (!ok) return sendJSON(res, 401, { error: "Password salah." });
+      const token = createSession(user.id);
+      sendJSON(res, 200, { ok: true, token: token, user: publicUser(user) });
+    }).catch(function (err) {
+      sendJSON(res, 400, { error: String(err.message || err) });
+    });
+    return true;
+  }
+
+  // POST /api/auth/logout
+  if (req.method === "POST" && pathname === "/api/auth/logout") {
+    const token = tokenFromReq(req);
+    if (token) {
+      try { db.prepare("DELETE FROM sessions WHERE token = ?").run(token); } catch (e) {}
+    }
+    sendJSON(res, 200, { ok: true });
+    return true;
+  }
+
+  // GET /api/auth/me
+  if (req.method === "GET" && pathname === "/api/auth/me") {
+    const user = getUserByToken(tokenFromReq(req));
+    if (!user) return sendJSON(res, 401, { error: "Belum login." });
+    sendJSON(res, 200, { user: publicUser(user) });
+    return true;
+  }
+
+  return false;
+}
+
+function requireAuth(req, res) {
+  const user = getUserByToken(tokenFromReq(req));
+  if (!user) {
+    sendJSON(res, 401, { error: "Sesi berakhir. Silakan login kembali." });
+    return null;
+  }
+  return user;
+}
+
 function serveStatic(req, res, pathname) {
   let rel = pathname === "/" ? "/index.html" : pathname;
   const STATIC_ROOT = path.join(ROOT, "public");
@@ -226,6 +394,14 @@ function serveStatic(req, res, pathname) {
 const server = http.createServer(function (req, res) {
   const url = new URL(req.url, "http://localhost");
   const pathname = url.pathname;
+
+  if (pathname.startsWith("/api/auth/")) {
+    if (handleAuth(req, res, pathname)) return;
+  }
+
+  if (pathname === "/api/state" || pathname === "/api/state/") {
+    if (!requireAuth(req, res)) return;
+  }
 
   if (req.method === "GET" && (pathname === "/api/state" || pathname === "/api/state/")) {
     sendJSON(res, 200, getState());

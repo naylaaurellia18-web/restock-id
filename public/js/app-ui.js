@@ -1,6 +1,6 @@
 var COLOR = {
-  primary: "#2563eb",
-  teal: "#0d9488",
+  primary: "#0d9488",
+  teal: "#0f766e",
   green: "#16a34a",
   yellow: "#eab308",
   orange: "#f97316",

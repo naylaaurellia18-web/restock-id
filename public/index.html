@@ -7,10 +7,105 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div id="app">
+<div id="boot" class="auth-loading">
+  <div class="spin"></div>
+  <p>Memuat Restock.id&hellip;</p>
+</div>
+
+<div id="auth" class="auth-wrap hidden">
+  <section class="auth-hero">
+    <div class="auth-brand">
+      <div class="brand-icon">R</div>
+      <div><strong>Restock.id</strong><span>Sistem Stok ROP UMKM</span></div>
+    </div>
+    <div>
+      <h2>Kendalikan stok toko kamu secara otomatis.</h2>
+      <p class="lead">Hitung Reorder Point, Safety Stock, dan EOQ dari riwayat penjualan — dapatkan peringatan tepat waktu sebelum stok habis.</p>
+      <div class="auth-feats">
+        <div class="af"><i>&#9889;</i> Peringatan reorder otomatis real-time</div>
+        <div class="af"><i>&#128200;</i> Dashboard analitik &amp; tren penjualan</div>
+        <div class="af"><i>&#128203;</i> Simulasi metode Manual vs ROP</div>
+        <div class="af"><i>&#128196;</i> Laporan siap cetak &amp; ekspor CSV</div>
+      </div>
+    </div>
+    <div class="auth-foot">&ldquo;Rancang Bangun Sistem Manajemen Stok Otomatis Berbasis Reorder Point untuk Meningkatkan Efisiensi Pengendalian Persediaan pada UMKM&rdquo;</div>
+  </section>
+
+  <section class="auth-panel">
+    <!-- LOGIN -->
+    <div id="loginView" class="auth-card">
+      <div class="ac-head">
+        <h1>Masuk ke akun</h1>
+        <p>Selamat datang kembali. Silakan login untuk melanjutkan.</p>
+      </div>
+      <div id="loginErr" class="auth-err"></div>
+      <form id="loginForm" autocomplete="on">
+        <div class="field">
+          <label for="loginId">Username atau Email</label>
+          <input id="loginId" name="username" autocomplete="username" required placeholder="cth: admin">
+        </div>
+        <div class="field">
+          <label for="loginPw">Password</label>
+          <div class="pw-wrap">
+            <input id="loginPw" name="password" type="password" autocomplete="current-password" required placeholder="••••••••">
+            <button type="button" class="pw-toggle" data-target="loginPw" tabindex="-1">Lihat</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit" id="loginBtn">Masuk</button>
+      </form>
+      <div class="auth-demo">
+        Akun demo: <code>admin</code> / <code>admin123</code><br>
+        Atau daftar akun baru untuk toko kamu sendiri.
+      </div>
+      <div class="auth-switch">Belum punya akun? <a href="#" id="toRegister">Daftar sekarang</a></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerView" class="auth-card hidden">
+      <div class="ac-head">
+        <h1>Buat akun baru</h1>
+        <p>Daftar gratis untuk mulai mengelola stok toko kamu.</p>
+      </div>
+      <div id="registerErr" class="auth-err"></div>
+      <form id="registerForm" autocomplete="on">
+        <div class="field">
+          <label for="regName">Nama lengkap *</label>
+          <input id="regName" name="name" autocomplete="name" required placeholder="cth: Siti Aminah">
+        </div>
+        <div class="field">
+          <label for="regUsername">Username *</label>
+          <input id="regUsername" name="username" autocomplete="username" required minlength="3" placeholder="cth: sitiminimarket">
+        </div>
+        <div class="field">
+          <label for="regEmail">Email *</label>
+          <input id="regEmail" name="email" type="email" autocomplete="email" required placeholder="cth: toko@email.com">
+        </div>
+        <div class="field">
+          <label for="regPw">Password *</label>
+          <div class="pw-wrap">
+            <input id="regPw" name="password" type="password" autocomplete="new-password" required minlength="6" placeholder="min. 6 karakter">
+            <button type="button" class="pw-toggle" data-target="regPw" tabindex="-1">Lihat</button>
+          </div>
+          <span class="hint">Gunakan minimal 6 karakter.</span>
+        </div>
+        <div class="field">
+          <label for="regPw2">Ulangi password *</label>
+          <div class="pw-wrap">
+            <input id="regPw2" name="password2" type="password" autocomplete="new-password" required minlength="6" placeholder="••••••••">
+            <button type="button" class="pw-toggle" data-target="regPw2" tabindex="-1">Lihat</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit" id="registerBtn">Daftar &amp; Masuk</button>
+      </form>
+      <div class="auth-switch">Sudah punya akun? <a href="#" id="toLogin">Masuk di sini</a></div>
+    </div>
+  </section>
+</div>
+
+<div id="app" class="hidden">
   <aside id="sidebar">
     <div class="brand">
-      <div class="brand-icon">S</div>
+      <div class="brand-icon">R</div>
       <div class="brand-text"><strong>Restock.id</strong><span>Sistem Stok ROP UMKM</span></div>
     </div>
     <nav id="nav" aria-label="Navigasi utama"></nav>
@@ -29,18 +124,28 @@
       <div class="topbar-right">
         <button id="bellBtn" class="btn btn-notif" title="Lihat notifikasi pemesanan ulang">Notifikasi <span id="bellBadge" class="badge badge-red">0</span></button>
         <div class="store-chip"><strong id="storeName">&ndash;</strong></div>
+        <div class="user-chip" id="userChip" title="Menu akun">
+          <div class="avatar" id="userAvatar">A</div>
+          <span class="uname" id="userName">Akun</span>
+          <div class="user-menu" id="userMenu">
+            <div class="um-head"><b id="umName">&ndash;</b><span id="umMeta">&ndash;</span></div>
+            <button type="button" id="logoutBtn">&#10162; Keluar dari akun</button>
+          </div>
+        </div>
       </div>
     </header>
     <main id="content"></main>
     <footer id="pagefoot"></footer>
   </div>
 </div>
+
 <div id="modal-root"></div>
 <div id="toast-root"></div>
 <iframe id="print-frame" sandbox="allow-same-origin allow-modals" hidden></iframe>
 <script src="js/app-data.js"></script>
 <script src="js/app-calc.js"></script>
 <script src="js/app-store.js"></script>
+<script src="js/app-auth.js"></script>
 <script src="js/app-ui.js"></script>
 <script src="js/app-pages.js"></script>
 <script src="js/app-main.js"></script>

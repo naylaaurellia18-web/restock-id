@@ -7,6 +7,14 @@ var Store = {
   poSerial: 1,
   persistTimer: null,
 
+  authHeaders: function (extra) {
+    var h = extra || {};
+    var t = "";
+    try { t = localStorage.getItem("restock_token") || ""; } catch (e) {}
+    if (t) h["X-Session-Token"] = t;
+    return h;
+  },
+
   init: function () {
     this.data = makeDefaultData();
     this._recalc();
@@ -19,7 +27,7 @@ var Store = {
       return;
     }
     var self = this;
-    fetch("api/state", {headers: {Accept: "application/json"}})
+    fetch("api/state", {headers: this.authHeaders({Accept: "application/json"})})
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (state) {
         if (state && state.products && state.products.length) {
@@ -58,7 +66,7 @@ var Store = {
     if (this.persistTimer) { clearTimeout(this.persistTimer); this.persistTimer = null; }
     fetch("api/state", {
       method: "PUT",
-      headers: {"Content-Type": "application/json"},
+      headers: this.authHeaders({"Content-Type": "application/json"}),
       body: JSON.stringify(this._persistPayload())
     }).catch(function () {});
   },
