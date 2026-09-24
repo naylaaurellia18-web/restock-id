@@ -13,6 +13,12 @@ var A = {};
 var P = {};
 P.nav = NAV;
 
+P.render = function (page) {
+  var fn = P[page];
+  if (typeof fn !== "function") fn = P.dashboard;
+  fn();
+};
+
 function statusCounts() {
   var st = Store.computeStatsAll();
   var c = {total: 0, aman: 0, waspada: 0, reorder: 0, habis: 0, nodata: 0};
