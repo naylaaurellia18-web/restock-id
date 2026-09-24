@@ -75,7 +75,7 @@ P.dashboard = function () {
     "</div>";
 
   html += '<div class="grid grid-2 section-gap">' +
-    '<div class="card card-pad"><h3 class="card-title">Peringatan Pemesanan Ulang <span class="text-muted" style="font-weight:400">(stok &le; ROP)</span></h3>' +
+    '<div class="card card-pad"><h3 class="card-title">Peringatan Pemesanan Ulang <span class="text-muted fw400">(stok &le; ROP)</span></h3>' +
     '<p class="card-sub">Diurutkan berdasarkan urgensi (estimasi hari sampai stok habis).</p>' +
     (alerts.length ? '<div id="alertList">' + alerts.map(function (a) {
       var etaTxt = a.eta == null ? "data belum cukup" : "&asymp; " + a.eta + " hari lagi habis";
@@ -83,16 +83,16 @@ P.dashboard = function () {
       return '<div class="alert-item">' +
         '<div class="ai-body"><div class="ai-name">' + esc(a.p.name) + " " + statusBadge(a.s) + "</div>" +
         '<div class="ai-meta">Stok <b>' + fmtNum(a.p.stock) + "</b> " + esc(a.p.unit) + " &bullet; ROP <b>" + fmtNum(a.st.rop) + "</b> &bullet; " + etaTxt + "</div></div>" +
-        '<div class="ai-body" style="flex:0 0 auto;text-align:right"><div style="font-size:12px;color:var(--muted)">Saran pesan</div><b>' + fmtNum(qty) + " " + esc(a.p.unit) + "</b></div>" +
-        '<button class="btn btn-outline btn-sm" onclick="A.detailProduct(\'' + a.p.id + '\')">Detail</button>' +
-        '<button class="btn btn-primary btn-sm" onclick="A.quickOrder(\'' + a.p.id + '\')">Pesan</button>' +
+        '<div class="ai-side"><div class="ai-label">Saran pesan</div><b>' + fmtNum(qty) + " " + esc(a.p.unit) + "</b></div>" +
+        '<button type="button" class="btn btn-outline btn-sm" onclick="A.detailProduct(\'' + a.p.id + '\')">Detail</button>' +
+        '<button type="button" class="btn btn-primary btn-sm" onclick="A.quickOrder(\'' + a.p.id + '\')">Pesan</button>' +
         "</div>";
     }).join("") + "</div>" : emptyState("Semua stok berada di atas titik pemesanan ulang. Tidak ada peringatan.")) +
     "</div>" +
 
     '<div class="card card-pad"><h3 class="card-title">Tren Penjualan Harian</h3>' +
     '<p class="card-sub">30 hari terakhir.</p>' +
-    '<div class="row mb12"><label style="font-size:12.5px;font-weight:600" for="psel_dashProd">Pilih produk:</label>' +
+    '<div class="row mb12"><label class="fw600 text-xs" for="psel_dashProd">Pilih produk:</label>' +
     productSelect(selId, "dashProd").replace('name="dashProd"', 'name="dashProd" onchange="A.dashProduct(this.value)"') +
     "</div>" +
     '<div id="dashTrend" class="chart-box"></div></div>' +
@@ -155,8 +155,8 @@ function renderStockVsRop() {
 
 P.products = function () {
   var html = '<div class="row-between mb12">' +
-    '<div class="text-muted" style="font-size:12.5px">Kelola data produk, harga, dan lead time pemasok.</div>' +
-    '<button class="btn btn-primary" onclick="A.modalProduct()">+ Tambah Produk</button>' +
+    '<div class="text-muted text-xs">Kelola data produk, harga, dan lead time pemasok.</div>' +
+    '<button type="button" class="btn btn-primary" onclick="A.modalProduct()">+ Tambah Produk</button>' +
     "</div>";
 
   html += '<div class="filter-bar">' +
@@ -230,14 +230,14 @@ A.filterProducts = function () {
       '<td class="num">' + (stk.enough && stk.rop != null ? fmtNum(stk.rop) : "&ndash;") + "</td>" +
       '<td class="num">' + cur(p.sellPrice) + "</td>" +
       "<td>" + info + "</td>" +
-      '<td><div class="row" style="gap:4px">' +
-      '<button class="btn btn-ghost btn-sm" onclick="A.detailProduct(\'' + p.id + "')" + '">Lihat</button>' +
-      '<button class="btn btn-ghost btn-sm" onclick="A.modalProduct(\'' + p.id + "')" + '">Edit</button>' +
-      '<button class="btn btn-danger btn-sm" onclick="A.deleteProduct(\'' + p.id + "')" + '">Hapus</button>' +
+      '<td><div class="row row-tight">' +
+      '<button type="button" class="btn btn-ghost btn-sm" onclick="A.detailProduct(\'' + p.id + "')" + '">Lihat</button>' +
+      '<button type="button" class="btn btn-ghost btn-sm" onclick="A.modalProduct(\'' + p.id + "')" + '">Edit</button>' +
+      '<button type="button" class="btn btn-danger btn-sm" onclick="A.deleteProduct(\'' + p.id + "')" + '">Hapus</button>' +
       "</div></td></tr>";
   }).join("");
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted" style="padding:28px">' +
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted empty-cell">' +
       (Store.products().length ? "Tidak ada produk yang cocok dengan filter." : "Belum ada produk. Klik \u201c+ Tambah Produk\u201d untuk memulai.") +
       "</td></tr>";
   }
@@ -381,7 +381,7 @@ function dailyQty(p, dateStr) {
 function detailCalcBody(p, st) {
   var steps = "";
   if (!st.enough) {
-    steps = '<div class="card card-pad" style="background:#fffbeb;border-color:#fde68a"><b>Data historis belum cukup.</b><br>Diperlukan minimal <b>' + st.minDays + " hari</b> data penjualan untuk menghitung Reorder Point. Saat ini data yang tersedia: <b>" + st.n + " hari</b> (total " + fmtNum(st.total) + " unit terjual). Terus catat transaksi penjualan agar sistem dapat menghitung ROP secara otomatis.</div>";
+    steps = '<div class="card card-pad card-warn"><b>Data historis belum cukup.</b><br>Diperlukan minimal <b>' + st.minDays + " hari</b> data penjualan untuk menghitung Reorder Point. Saat ini data yang tersedia: <b>" + st.n + " hari</b> (total " + fmtNum(st.total) + " unit terjual). Terus catat transaksi penjualan agar sistem dapat menghitung ROP secara otomatis.</div>";
   } else {
     var maxC = Store.settings().maxCycleDays || 14;
     var eoqDesc = st.eoq ? "EOQ = &#8730;(2 &times; " + fmtNum(st.d * 365) + " &times; " + cur(Store.settings().orderCost) + " / " + cur(p.buyPrice * Store.settings().holdingPct / 100) + ") = <b>" + fmtNum(st.eoq) + "</b> unit. Karena kapasitas penyimpanan UMKM terbatas, kuantitas saran dibatasi kebutuhan maksimal " + maxC + " hari." : "Biaya pesan/biaya simpan belum terisi penuh, sehingga saran kuantitas memakai cadangan siklus (d &times; 2L), dibatasi kebutuhan maksimal " + maxC + " hari.";
@@ -398,10 +398,10 @@ function detailCalcBody(p, st) {
       stepQ("5. Safety Stock (SS)", "SS = Z &times; &sigma;d &times; &#8730;L = " + st.Z + " &times; " + fmtNum(st.sigma) + " &times; " + "&#8730;" + st.L, "SS = <b>" + fmtNum(st.ss) + "</b> unit") +
       stepQ("6. Reorder Point (ROP)", "ROP = (d &times; L) + SS = (" + fmtNum(st.d) + " &times; " + st.L + ") + " + fmtNum(st.ss), "ROP = <b>" + fmtNum(st.rop) + "</b> unit") +
       stepQ("7. Kuantitas pesanan disarankan", eoqDesc, "Kuantitas saran = <b>" + fmtNum(st.cycle) + "</b> unit &middot; target stok maks <b>" + fmtNum(st.targetMax) + "</b>") +
-      '<div class="card card-pad" style="background:#eff6ff;border-color:#bfdbfe"><b>Artinya:</b> pesan ulang dilakukan saat stok mencapai <b>' + fmtNum(st.rop) + " " + esc(p.unit) + "</b>. Stok kini <b>" + fmtNum(p.stock) + "</b> "
-      + (p.stock <= st.rop ? "&rarr; <span style='color:var(--red);font-weight:700'>sudah di bawah ROP, segera pesan!</span>" : "&rarr; masih di atas ROP, aman untuk saat ini.") + "</div>";
+      '<div class="card card-pad card-info"><b>Artinya:</b> pesan ulang dilakukan saat stok mencapai <b>' + fmtNum(st.rop) + " " + esc(p.unit) + "</b>. Stok kini <b>" + fmtNum(p.stock) + "</b> "
+      + (p.stock <= st.rop ? "&rarr; <span class='text-crit'>sudah di bawah ROP, segera pesan!</span>" : "&rarr; masih di atas ROP, aman untuk saat ini.") + "</div>";
   }
-  return '<div class="mb12">' + steps + "</div><h4 style='margin:16px 0 6px'>Penjualan Historis Harian</h4><div id='detSales' class='chart-box'></div>";
+  return '<div class="mb12">' + steps + "</div><h4 class='detail-h'>Penjualan Historis Harian</h4><div id='detSales' class='chart-box'></div>";
 }
 
 function stepQ(title, calc, result) {
@@ -441,7 +441,7 @@ function signatureHTML() {
 
 P.transactions = function () {
   var html = '<div class="grid grid-2">' +
-    '<div class="card card-pad"><h3 class="card-title" style="color:#166534">&#10133; Stok Masuk (Pembelian / Restok)</h3>' +
+    '<div class="card card-pad"><h3 class="card-title title-green">&#10133; Stok Masuk (Pembelian / Restok)</h3>' +
     '<p class="card-sub">Catat penerimaan barang; stok otomatis bertambah.</p>' +
     '<form class="form-grid" onsubmit="A.submitTx(event,this)">' +
     '<input type="hidden" name="type" value="in">' +
@@ -452,7 +452,7 @@ P.transactions = function () {
     '<div class="field full"><button class="btn btn-success" type="submit">Catat Stok Masuk</button></div>' +
     "</form></div>" +
 
-    '<div class="card card-pad"><h3 class="card-title" style="color:#92400e">&#10134; Stok Keluar (Penjualan)</h3>' +
+    '<div class="card card-pad"><h3 class="card-title title-amber">&#10134; Stok Keluar (Penjualan)</h3>' +
     '<p class="card-sub">Catat penjualan; stok otomatis berkurang. Tidak boleh melebihi stok.</p>' +
     '<form class="form-grid" onsubmit="A.submitTx(event,this)">' +
     '<input type="hidden" name="type" value="out">' +
@@ -465,13 +465,13 @@ P.transactions = function () {
 
   html += '<div class="card card-pad section-gap">' +
     '<div class="row-between mb12">' +
-    '<div><h3 class="card-title" style="margin:0">Riwayat Transaksi</h3>' +
-    '<p class="card-sub" style="margin:2px 0 0">Filter &amp; kelola seluruh pergerakan stok.</p></div>' +
+    '<div><h3 class="card-title tight">Riwayat Transaksi</h3>' +
+    '<p class="card-sub tight">Filter &amp; kelola seluruh pergerakan stok.</p></div>' +
     '<div class="row">' +
-    '<button class="btn btn-ghost btn-sm" onclick="A.downloadTxTemplate()">Template CSV</button>' +
-    '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'impFile\').click()">Import CSV</button>' +
+    '<button type="button" class="btn btn-ghost btn-sm" onclick="A.downloadTxTemplate()">Template CSV</button>' +
+    '<button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById(\'impFile\').click()">Import CSV</button>' +
     '<input type="file" id="impFile" accept=".csv,text/csv" class="hidden" onchange="A.importCSV(this)">' +
-    '<button class="btn btn-outline btn-sm" onclick="A.exportTx()">Ekspor CSV</button>' +
+    '<button type="button" class="btn btn-outline btn-sm" onclick="A.exportTx()">Ekspor CSV</button>' +
     "</div></div>" +
 
     '<div class="filter-bar">' +
@@ -497,7 +497,7 @@ P.transactions = function () {
     "</div>" +
     '<div class="filter-field filter-action">' +
     '<label>&nbsp;</label>' +
-    '<button class="btn btn-ghost" onclick="A.resetTx()">Reset</button>' +
+    '<button type="button" class="btn btn-ghost" onclick="A.resetTx()">Reset</button>' +
     "</div>" +
     "</div>" +
 
@@ -567,11 +567,11 @@ function renderTxTable() {
       "<td>" + esc(t.note) + "</td></tr>";
   }).join("");
   if (!pages.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:26px">Tidak ada transaksi yang cocok dengan filter.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted empty-cell">Tidak ada transaksi yang cocok dengan filter.</td></tr>';
   }
   var pager = document.getElementById("txPager");
   pager.innerHTML = '<div class="row"><small class="text-muted">' + list.length + " transaksi &middot; hal " + A.txPage + "/" + maxPage + '</small>' +
-    '<button class="btn btn-ghost btn-sm" onclick="A.txGo(-1)">&#9664;</button><button class="btn btn-ghost btn-sm" onclick="A.txGo(1)">&#9654;</button></div>';
+    '<button type="button" class="btn btn-ghost btn-sm" onclick="A.txGo(-1)">&#9664;</button><button type="button" class="btn btn-ghost btn-sm" onclick="A.txGo(1)">&#9654;</button></div>';
 }
 
 A.txGo = function (d) {
@@ -718,13 +718,13 @@ P.reorder = function () {
     '<tr><td>90%</td><td class="num">1,28</td></tr><tr><td>95% (default)</td><td class="num">1,65</td></tr><tr><td>99%</td><td class="num">2,33</td></tr>' +
     "</tbody></table></div></div>";
 
-  html += '<div class="row-between card card-pad mb16" style="align-items:center">' +
+  html += '<div class="row-between card card-pad mb16">' +
     '<div><b>Periode Data Historis:</b> <span class="text-muted">di bawah 14 hari &rArr; status &ldquo;Data belum cukup&rdquo;</span></div>' +
     '<div class="row">' +
     '<select id="ropPeriod">' + [30, 60, 90].map(function (d) {
       return '<option value="' + d + '"' + (s.historyDays === d ? " selected" : "") + ">" + d + " hari</option>";
     }).join("") + "</select>" +
-    '<button class="btn btn-primary btn-sm" onclick="A.applyPeriod()">Terapkan</button>' +
+    '<button type="button" class="btn btn-primary btn-sm" onclick="A.applyPeriod()">Terapkan</button>' +
     "</div></div>";
 
   html += '<div class="card"><div class="table-wrap"><table class="tbl"><thead><tr>' +
@@ -737,7 +737,7 @@ function ropTblRows() {
   var st = Store.computeStatsAll();
   var prods = Store.products();
   if (!prods.length) {
-    return '<tr><td colspan="12" class="text-center text-muted" style="padding:28px">Belum ada produk. Tambahkan produk terlebih dahulu.</td></tr>';
+    return '<tr><td colspan="12" class="text-center text-muted empty-cell">Belum ada produk. Tambahkan produk terlebih dahulu.</td></tr>';
   }
   return prods.map(function (p) {
     var s = st[p.id];
@@ -753,17 +753,17 @@ function ropTblRows() {
       '<td class="num">' + (s.enough ? fmtNum(s.cycle) : "&ndash;") + "</td>" +
       '<td class="num"><b>' + fmtNum(p.stock) + "</b></td>" +
       "<td>" + statusBadge(statusOf(p, s)) + "</td>" +
-      '<td><div class="row" style="gap:4px">' +
-      '<button class="btn btn-ghost btn-sm" onclick="A.detailProduct(\'' + p.id + "')" + '">Detail</button>' +
-      '<button class="btn btn-outline btn-sm" onclick="A.quickOrder(\'' + p.id + "')" + '">Pesan</button>' +
+      '<td><div class="row row-tight">' +
+      '<button type="button" class="btn btn-ghost btn-sm" onclick="A.detailProduct(\'' + p.id + "')" + '">Detail</button>' +
+      '<button type="button" class="btn btn-outline btn-sm" onclick="A.quickOrder(\'' + p.id + "')" + '">Pesan</button>' +
       "</div></td></tr>";
   }).join("");
 }
 
 function formulaCard(title, expr, desc) {
-  return '<div class="card card-pad"><div class="f-title" style="font-weight:700;font-size:13px">' + title + "</div>" +
-    '<div class="f-expr" style="font-family:Cambria,Georgia,serif;font-size:17px;color:#1e3a8a;margin:8px 0 6px">' + expr + "</div>" +
-    '<p class="card-sub" style="margin:0">' + desc + "</p></div>";
+  return '<div class="card card-pad fcard"><div class="f-title">' + title + "</div>" +
+    '<div class="f-expr">' + expr + "</div>" +
+    '<p class="card-sub flush">' + desc + "</p></div>";
 }
 
 A.applyPeriod = function () {
@@ -778,10 +778,10 @@ A.applyPeriod = function () {
 
 P.notifications = function () {
   var html = '<div class="tabs">' +
-    '<button id="tabn_all" class="active" onclick="A.setNotifTab(\'all\')">Semua</button>' +
-    '<button id="tabn_baru" onclick="A.setNotifTab(\'baru\')">Baru</button>' +
-    '<button id="tabn_dipesan" onclick="A.setNotifTab(\'dipesan\')">Sudah Dipesan</button>' +
-    '<button id="tabn_selesai" onclick="A.setNotifTab(\'selesai\')">Selesai</button>' +
+    '<button type="button" id="tabn_all" class="active" onclick="A.setNotifTab(\'all\')">Semua</button>' +
+    '<button type="button" id="tabn_baru" onclick="A.setNotifTab(\'baru\')">Baru</button>' +
+    '<button type="button" id="tabn_dipesan" onclick="A.setNotifTab(\'dipesan\')">Sudah Dipesan</button>' +
+    '<button type="button" id="tabn_selesai" onclick="A.setNotifTab(\'selesai\')">Selesai</button>' +
     "</div>";
   html += '<div id="notifList"></div>';
   document.getElementById("content").innerHTML = html;
@@ -809,9 +809,9 @@ function renderNotifList() {
   var html = "";
   var baruCount = Store.notifications().filter(function (n) { return n.status === "baru"; }).length;
   html += '<div class="row-between mb12">' +
-    '<div class="text-muted" style="font-size:12.5px">' + list.length + " notifikasi " + (tab === "all" ? "(ditampilkan terbaru di atas)" : "") + "</div>" +
+    '<div class="text-muted text-xs">' + list.length + " notifikasi " + (tab === "all" ? "(ditampilkan terbaru di atas)" : "") + "</div>" +
     '<div class="row">' +
-    '<button class="btn btn-primary btn-sm"' + (baruCount ? "" : " disabled") + ' onclick="A.openPO()">Buat Daftar Pesanan</button>' +
+    '<button type="button" class="btn btn-primary btn-sm"' + (baruCount ? "" : " disabled") + ' onclick="A.openPO()">Buat Daftar Pesanan</button>' +
     "</div></div>";
 
   if (!list.length) {
@@ -824,15 +824,15 @@ function renderNotifList() {
     var st = p ? Store.computeStats(p) : null;
     var etaTxt = st && st.d > 0 ? "&asymp; " + Math.floor(n.stockAtNotify / st.d) + " hari sampai habis" : "data belum cukup";
     var badge = n.status === "baru" ? '<span class="badge badge-orange">Baru</span>' : n.status === "dipesan" ? '<span class="badge badge-info">Sudah Dipesan</span>' : '<span class="badge badge-green">Selesai</span>';
-    html += '<div class="alert-item ' + (n.status === "baru" ? "" : "" ) + '">' +
+    html += '<div class="alert-item">' +
       '<div class="ai-body">' +
       '<div class="ai-name">' + esc(name) + " " + badge + "</div>" +
       '<div class="ai-meta">Stok saat notifikasi: <b>' + fmtNum(n.stockAtNotify) + "</b> &bullet; ROP: <b>" + fmtNum(n.rop) + "</b> &bullet; " + etaTxt + "</div>" +
       '<div class="ai-meta">Pesan ulang disarankan: <b>' + fmtNum(n.suggestedQty) + " " + esc(p ? p.unit : "") + "</b> &bullet; " + fmtDateLabel(n.date) + "</div>" +
       "</div>" +
-      (p ? '<button class="btn btn-ghost btn-sm" onclick="A.detailProduct(\'' + p.id + "')" + '">Detail</button>' : "") +
-      (n.status === "baru" ? '<button class="btn btn-outline btn-sm" onclick="A.setNotif(\'' + n.id + "','dipesan')" + '">Tandai Dipesan</button>' : "") +
-      (n.status !== "selesai" ? '<button class="btn btn-ghost btn-sm" onclick="A.setNotif(\'' + n.id + "','selesai')" + '">Selesai</button>' : "") +
+      (p ? '<button type="button" class="btn btn-ghost btn-sm" onclick="A.detailProduct(\'' + p.id + "')" + '">Detail</button>' : "") +
+      (n.status === "baru" ? '<button type="button" class="btn btn-outline btn-sm" onclick="A.setNotif(\'' + n.id + "','dipesan')" + '">Tandai Dipesan</button>' : "") +
+      (n.status !== "selesai" ? '<button type="button" class="btn btn-ghost btn-sm" onclick="A.setNotif(\'' + n.id + "','selesai')" + '">Selesai</button>' : "") +
       "</div>";
   });
   el.innerHTML = html;
@@ -857,7 +857,7 @@ A.openPO = function () {
       '<td class="mono">' + esc(it.sku) + "</td>" +
       "<td>" + esc(it.name) + "</td>" +
       "<td>" + esc(it.unit) + "</td>" +
-      '<td><input type="number" min="1" step="1" value="' + it.qty + '" id="poq_' + it.notifId + '" style="width:90px"></td>' +
+      '<td><input type="number" min="1" step="1" value="' + it.qty + '" id="poq_' + it.notifId + '" class="qty-input"></td>' +
       '<td class="num">' + cur(it.price) + "</td>" +
       '<td class="num">' + cur(it.sub) + "</td></tr>";
   }).join("");
@@ -906,8 +906,8 @@ A.printPO = function () {
     return a + q * it.price;
   }, 0);
   var body = "<h2>Purchase Order</h2>" +
-    '<table style="border:none"><tr><td style="border:none">No. PO</td><td style="border:none">: ' + esc(po.no) + "</td></tr>" +
-    '<tr><td style="border:none">Tanggal</td><td style="border:none">: ' + fmtDateLabel(po.date) + "</td></tr></table>" +
+    '<table class="meta-tbl"><tr><td>No. PO</td><td>: ' + esc(po.no) + "</td></tr>" +
+    '<tr><td>Tanggal</td><td>: ' + fmtDateLabel(po.date) + "</td></tr></table>" +
     "<table><thead><tr><th>#</th><th>SKU</th><th>Nama Produk</th><th class='num'>Jumlah</th><th>Satuan</th><th class='num'>Harga</th><th class='num'>Subtotal</th></tr></thead><tbody>" + rows + "</tbody></table>" +
     "<p class='text-right'><b>Total: " + cur(tot) + "</b></p>" +
     '<p class="text-muted">Metode: Reorder Point &mdash; otomatis.</p>' + signatureHTML();
@@ -1036,7 +1036,7 @@ function buildSimResultsHTML(sim) {
     '<div id="simCompare" class="chart-box"></div></div>' +
     '<div class="card card-pad"><h3 class="card-title">Trajektori Stok per Produk</h3>' +
     '<p class="card-sub">Jalur stok harian hasil simulasi (garis putus-putus = ROP).</p>' +
-    '<div class="row mb12"><label style="font-size:12.5px;font-weight:600">Produk:</label><select id="simProd" onchange="A.simProdChange()">' + simTrajOpts(sim) + "</select></div>" +
+    '<div class="row mb12"><label class="fw600 text-xs" for="simProd">Produk:</label><select id="simProd" onchange="A.simProdChange()">' + simTrajOpts(sim) + "</select></div>" +
     '<div id="simTraj" class="chart-box"></div></div></div>';
 
   html += '<div class="card card-pad mb16"><h3 class="card-title">Uji Akurasi Notifikasi Reorder</h3>' +
@@ -1048,8 +1048,8 @@ function buildSimResultsHTML(sim) {
     "</div><div class='helptext'>Catatan: notifikasi dihitung <b>tepat waktu</b> bila stok saat memicu masih sanggup menutupi permintaan selama lead time, sehingga pesanan tiba sebelum stok habis. <b>Miss</b> dihitung sebagai rangkaian hari stockout yang tidak diawali notifikasi tepat waktu minimal satu lead time sebelumnya.</div></div>";
 
   html += '<div class="card card-pad"><div class="row-between mb12">' +
-    '<h3 class="card-title" style="margin:0">Tabel Hasil per Produk</h3>' +
-    '<div class="row"><button class="btn btn-outline btn-sm" onclick="A.exportSim()">Ekspor ke CSV</button></div></div>' +
+    '<h3 class="card-title tight">Tabel Hasil per Produk</h3>' +
+    '<div class="row"><button type="button" class="btn btn-outline btn-sm" onclick="A.exportSim()">Ekspor ke CSV</button></div></div>' +
     '<div class="table-wrap"><table class="tbl"><thead><tr>' +
     "<th>SKU</th><th>Nama</th><th class='num'>d</th><th class='num'>ROP</th><th class='num'>Q</th>" +
     "<th class='num'>SO Manual</th><th class='num'>SO ROP</th>" +
@@ -1076,16 +1076,16 @@ function buildSimResultsHTML(sim) {
 
 function compCard(label, manV, ropV, unit, hint) {
   return '<div class="card card-pad">' +
-    '<div class="sc-label" style="font-weight:600">' + label + "</div>" +
-    '<div class="row-between mt8"><div><div style="font-size:11px;color:var(--muted)">Manual</div><b style="color:#57534e">' + manV + "</b></div>" +
-    '<div style="font-size:18px;color:var(--muted)">&#8594;</div>' +
-    '<div><div style="font-size:11px;color:var(--muted)">ROP</div><b style="color:#166534">' + ropV + "</b></div></div>" +
+    '<div class="sc-label fw600">' + label + "</div>" +
+    '<div class="row-between mt8"><div><div class="comp-label">Manual</div><b class="comp-man">' + manV + "</b></div>" +
+    '<div class="comp-arrow">&#8594;</div>' +
+    '<div><div class="comp-label">ROP</div><b class="comp-rop">' + ropV + "</b></div></div>" +
     '<div class="sc-sub mt8">' + hint + " (" + unit + ")</div></div>";
 }
 
 function accCard(label, val, hint) {
   return '<div class="stat-card"><div class="sc-top"><span class="sc-label">' + label + "</span></div>" +
-    '<div class="sc-num" style="font-size:24px">' + val + '</div><div class="sc-sub mt8">' + hint + "</div></div>";
+    '<div class="sc-num sc-num-sm">' + val + '</div><div class="sc-sub mt8">' + hint + "</div></div>";
 }
 
 function simTrajOpts(sim) {
@@ -1148,9 +1148,9 @@ A.exportSim = function () {
 
 P.reports = function () {
   var html = '<div class="tabs">' +
-    '<button id="repr_stock" class="active" onclick="A.setReportTab(\'stock\')">Stok Saat Ini</button>' +
-    '<button id="repr_move" onclick="A.setReportTab(\'move\')">Pergerakan Stok</button>' +
-    '<button id="repr_rop" onclick="A.setReportTab(\'rop\')">Hasil Perhitungan ROP</button>' +
+    '<button type="button" id="repr_stock" class="active" onclick="A.setReportTab(\'stock\')">Stok Saat Ini</button>' +
+    '<button type="button" id="repr_move" onclick="A.setReportTab(\'move\')">Pergerakan Stok</button>' +
+    '<button type="button" id="repr_rop" onclick="A.setReportTab(\'rop\')">Hasil Perhitungan ROP</button>' +
     "</div><div id='repBody'></div>";
   document.getElementById("content").innerHTML = html;
   A.repTab = "stock";
@@ -1200,16 +1200,16 @@ function reportStock() {
     "<th>SKU</th><th>Nama</th><th>Kategori</th><th class='num'>Stok</th><th>Satuan</th><th class='num'>Harga Beli</th><th class='num'>Harga Jual</th><th>Status</th>" +
     "</tr></thead><tbody>" + rows + "</tbody></table></div>";
   return '<div class="card card-pad"><div class="row-between mb12">' +
-    '<h3 class="card-title" style="margin:0">Laporan Stok Saat Ini</h3>' +
-    '<div class="row"><button class="btn btn-outline btn-sm" onclick="A.exportRepStock()">Unduh CSV</button><button class="btn btn-outline btn-sm" onclick="A.printRepStock()">Cetak / PDF</button></div></div>' + table + "</div>";
+    '<h3 class="card-title tight">Laporan Stok Saat Ini</h3>' +
+    '<div class="row"><button type="button" class="btn btn-outline btn-sm" onclick="A.exportRepStock()">Unduh CSV</button><button type="button" class="btn btn-outline btn-sm" onclick="A.printRepStock()">Cetak / PDF</button></div></div>' + table + "</div>";
 }
 
 function reportMoveToolbar() {
   return '<div class="card card-pad mb12"><div class="row">' +
     '<span class="text-muted">Tanggal:</span><input type="date" id="repF" onchange="A.refreshMove()"> <span class="text-muted">s/d</span> <input type="date" id="repT" onchange="A.refreshMove()"> ' +
     '<select id="repType" onchange="A.refreshMove()"><option value="">Semua jenis</option><option value="in">Masuk</option><option value="out">Keluar</option></select>' +
-    '<button class="btn btn-outline btn-sm" onclick="A.exportRepMove()">Unduh CSV</button>' +
-    '<button class="btn btn-outline btn-sm" onclick="A.printRepMove()">Cetak / PDF</button>' +
+    '<button type="button" class="btn btn-outline btn-sm" onclick="A.exportRepMove()">Unduh CSV</button>' +
+    '<button type="button" class="btn btn-outline btn-sm" onclick="A.printRepMove()">Cetak / PDF</button>' +
     "</div></div>";
 }
 
@@ -1225,7 +1225,7 @@ function reportMoveTable(from, to, prod, type) {
   });
   list.sort(function (a, b) { return b.date.localeCompare(a.date); });
   if (!list.length) {
-    return '<div class="card card-pad"><div class="row-between mb12"><h3 class="card-title" style="margin:0">Laporan Pergerakan Stok</h3></div>' + emptyState("Tidak ada transaksi pada filter ini.") + "</div>";
+    return '<div class="card card-pad"><div class="row-between mb12"><h3 class="card-title tight">Laporan Pergerakan Stok</h3></div>' + emptyState("Tidak ada transaksi pada filter ini.") + "</div>";
   }
   var rows = list.slice(0, 500).map(function (t) {
     var p = mapP[t.productId];
@@ -1237,7 +1237,7 @@ function reportMoveTable(from, to, prod, type) {
       '<td class="num">' + (isIn ? "+" : "&minus;") + fmtNum(t.qty) + "</td>" +
       "<td>" + esc(t.note) + "</td></tr>";
   }).join("");
-  return '<div class="card card-pad"><div class="row-between mb12"><h3 class="card-title" style="margin:0">Laporan Pergerakan Stok</h3>' +
+  return '<div class="card card-pad"><div class="row-between mb12"><h3 class="card-title tight">Laporan Pergerakan Stok</h3>' +
     '<span class="text-muted">' + list.length + " transaksi</span></div>" +
     '<div class="table-wrap"><table class="tbl"><thead><tr><th>Tanggal</th><th>SKU</th><th>Produk</th><th>Jenis</th><th class="num">Jumlah</th><th>Keterangan</th></tr></thead>' +
     "<tbody>" + rows + "</tbody></table></div></div>";
@@ -1248,8 +1248,8 @@ function reportROP() {
     return '<div class="card card-pad"><h3 class="card-title">Laporan Hasil Perhitungan Reorder Point</h3>' + emptyState("Belum ada produk untuk dihitung.") + "</div>";
   }
   return '<div class="card card-pad"><div class="row-between mb12">' +
-    '<h3 class="card-title" style="margin:0">Laporan Hasil Perhitungan Reorder Point</h3>' +
-    '<div class="row"><button class="btn btn-outline btn-sm" onclick="A.exportRepRop()">Unduh CSV</button><button class="btn btn-outline btn-sm" onclick="A.printRepRop()">Cetak / PDF</button></div></div>' +
+    '<h3 class="card-title tight">Laporan Hasil Perhitungan Reorder Point</h3>' +
+    '<div class="row"><button type="button" class="btn btn-outline btn-sm" onclick="A.exportRepRop()">Unduh CSV</button><button type="button" class="btn btn-outline btn-sm" onclick="A.printRepRop()">Cetak / PDF</button></div></div>' +
     '<div class="table-wrap">' + ropReportTable() + "</div></div>";
 }
 
@@ -1383,7 +1383,7 @@ P.settings = function () {
       return '<option value="' + d + '"' + (s.historyDays === d ? " selected" : "") + ">" + d + " hari</option>";
     }).join("") + "</select></div>" +
     '<div class="field"><label>Batas Siklus Pemesanan (hari) <span class="tooltip" data-tip="Kuantitas pesanan saran dibatasi kebutuhan maksimal sejumlah hari ini agar realistik bagi kapasitas penyimpanan UMKM.">&#9432;</span></label><input type="number" min="1" name="maxCycleDays" value="' + (s.maxCycleDays || 14) + '"></div>' +
-    '<div class="field full sc-label" style="margin-top:6px">Parameter Metode Manual (untuk modul Pengujian)</div>' +
+    '<div class="field full sc-label form-section">Parameter Metode Manual (untuk modul Pengujian)</div>' +
     '<div class="field"><label>Metode</label><select name="mMode">' +
     '<option value="threshold"' + (s.manual.mode === "threshold" ? " selected" : "") + '>Ambang tetap</option>' +
     '<option value="interval"' + (s.manual.mode === "interval" ? " selected" : "") + '>Interval tetap</option>' +
@@ -1395,10 +1395,10 @@ P.settings = function () {
 
   html += '<div class="card card-pad"><h3 class="card-title">Data &amp; Utilitas</h3>' +
     '<div class="row mt8">' +
-    '<button class="btn btn-ghost" onclick="A.downloadBackup()">Unduh Cadangan Data</button>' +
-    '<button class="btn btn-ghost" onclick="document.getElementById(\'backupFile\').click()">Pulihkan Data</button>' +
+    '<button type="button" class="btn btn-ghost" onclick="A.downloadBackup()">Unduh Cadangan Data</button>' +
+    '<button type="button" class="btn btn-ghost" onclick="document.getElementById(\'backupFile\').click()">Pulihkan Data</button>' +
     '<input type="file" id="backupFile" accept="application/json,.json" class="hidden" onchange="A.restoreBackup(this)">' +
-    '<button class="btn btn-danger" onclick="A.resetData()">Reset ke Data Contoh</button>' +
+    '<button type="button" class="btn btn-danger" onclick="A.resetData()">Reset ke Data Contoh</button>' +
     "</div>" +
     '<p class="helptext mb8 mt8">Reset akan menghapus seluruh perubahan dan mengembalikan purwarupa ke data contoh (13 produk, 90 hari riwayat penjualan). Data tersimpan aman di server dan disinkronkan otomatis setiap perubahan.</p></div>';
 

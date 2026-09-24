@@ -75,7 +75,7 @@ function openModal(cfg) {
   var wide = cfg.wide ? " wide" : "";
   root.innerHTML = '<div class="modal-back"><div class="modal' + wide + '">' +
     '<div class="modal-head"><h3>' + cfg.title + "</h3>" +
-    '<button class="icon-btn" onclick="closeModal()" title="Tutup">&#10005;</button></div>' +
+    '<button type="button" class="icon-btn" onclick="closeModal()" title="Tutup">&#10005;</button></div>' +
     '<div class="modal-body">' + (cfg.body || "") + "</div>" +
     (cfg.foot ? '<div class="modal-foot">' + cfg.foot + "</div>" : "") +
     "</div></div>";
@@ -151,6 +151,7 @@ function printHTML(title, bodyHTML) {
     "body{font-family:system-ui,Arial,sans-serif;color:#0f172a;margin:28px;font-size:13px}" +
     "h1{font-size:18px;margin:0 0 2px}h2{font-size:14px;margin:18px 0 8px;border-bottom:2px solid #1e3a8a;padding-bottom:4px}" +
     "table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left;font-size:12px}" +
+    "table.meta-tbl,table.meta-tbl td{border:none;margin-top:0}table.meta-tbl td{padding:1px 6px 1px 0}" +
     "th{background:#f1f5f9}.num{text-align:right}.meta{color:#475569;font-size:11px;margin:2px 0}hr{border:none;border-top:1px solid #e2e8f0;margin:14px 0}.ttd{margin-top:46px;display:flex;justify-content:space-between}.ttd div{width:180px;text-align:center}.ttd .sp{height:50px}</style></head><body>" +
     "<h1>" + esc(Store.settings().storeName) + "</h1>" +
     "<div class='meta'>" + esc(Store.settings().address || "") + "</div>" +
@@ -335,7 +336,7 @@ function fmtShortNum(v) {
 }
 
 function emptyState(msg) {
-  return '<div class="card card-pad text-center text-muted" style="padding:34px">' + esc(msg || "Tidak ada data.") + "</div>";
+  return '<div class="card"><div class="empty-state">' + esc(msg || "Tidak ada data.") + "</div></div>";
 }
 
 function legendHTML(items) {
