@@ -7,3 +7,6 @@ data/
 backup/
 .DS_Store
 Thumbs.db.vercel/
+.vercel
+.env*
+.env.local
