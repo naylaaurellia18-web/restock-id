@@ -64,18 +64,19 @@ Menjalankan 25 uji fungsional inti (perhitungan ROP/EOQ, validasi transaksi, sim
 
 ```
 restock-id/
-├─ index.html            # antarmuka aplikasi
-├─ server.js             # server Node.js + database SQLite
-├─ css/style.css         # gaya
-├─ js/
-│  ├─ app-data.js        # data contoh & konfigurasi default
-│  ├─ app-calc.js        # rumus statistik, ROP, EOQ, simulasi
-│  ├─ app-store.js       # state aplikasi + sinkronisasi ke database
-│  ├─ app-ui.js          # helper antarmuka, grafik SVG, cetak
-│  ├─ app-pages.js       # renderer halaman & aksi
-│  └─ app-main.js        # inisialisasi
-├─ test/smoke.js         # uji fungsional
-└─ data/                 # database SQLite (dibuat otomatis, tidak ikut version control)
+├─ public/
+│  ├─ index.html        # antarmuka aplikasi
+│  ├─ css/style.css     # gaya
+│  └─ js/
+│     ├─ app-data.js    # data contoh & konfigurasi default
+│     ├─ app-calc.js    # rumus statistik, ROP, EOQ, simulasi
+│     ├─ app-store.js   # state aplikasi + sinkronisasi ke database
+│     ├─ app-ui.js      # helper antarmuka, grafik SVG, cetak
+│     ├─ app-pages.js   # renderer halaman & aksi
+│     └─ app-main.js    # inisialisasi
+├─ server.js            # server Node.js + database SQLite (lokal & Vercel)
+├─ test/smoke.js        # uji fungsional
+└─ data/                # database SQLite (lokal saja, tidak ikut version control)
 ```
 
 ## Lisensi

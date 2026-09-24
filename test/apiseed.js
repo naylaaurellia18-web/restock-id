@@ -5,7 +5,7 @@ const sandbox = {Math, Date, JSON, console, Number, String, Object, Array, isFin
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 for (const f of ["app-calc.js", "app-data.js"]) {
-  vm.runInContext(fs.readFileSync(path.join(__dirname, "../js", f), "utf8"), sandbox, {filename: f});
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "../public/js", f), "utf8"), sandbox, {filename: f});
 }
 const data = sandbox.makeDefaultData();
 const payload = {

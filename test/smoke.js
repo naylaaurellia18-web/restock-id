@@ -2,7 +2,7 @@ const fs = require("fs");
 const vm = require("vm");
 const path = require("path");
 
-const base = path.resolve(__dirname, "..", "js");
+const base = path.resolve(__dirname, "..", "public", "js");
 const sandbox = {
   Math, Date, JSON, console, Number, String, Object, Array, isFinite, Infinity,
   parseInt, parseFloat, Intl

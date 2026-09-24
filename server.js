@@ -196,14 +196,15 @@ function readBody(req) {
 
 function serveStatic(req, res, pathname) {
   let rel = pathname === "/" ? "/index.html" : pathname;
+  const STATIC_ROOT = path.join(ROOT, "public");
   let fp;
   try {
-    fp = path.normalize(path.join(ROOT, decodeURIComponent(rel)));
+    fp = path.normalize(path.join(STATIC_ROOT, decodeURIComponent(rel)));
   } catch (e) {
     sendJSON(res, 400, { error: "path tidak valid" });
     return;
   }
-  if (fp !== ROOT && !fp.startsWith(ROOT + path.sep)) {
+  if (fp !== STATIC_ROOT && !fp.startsWith(STATIC_ROOT + path.sep)) {
     sendJSON(res, 403, { error: "akses ditolak" });
     return;
   }
