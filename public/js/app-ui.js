@@ -343,8 +343,8 @@ function statNumber(x) {
   return fmtNum(v);
 }
 
-function productSelect(selectedId, name) {
-  var opts = "";
+function productSelect(selectedId, name, includeAll) {
+  var opts = includeAll ? '<option value="">' + esc(includeAll) + "</option>" : "";
   Store.products().forEach(function (p) {
     opts += '<option value="' + esc(p.id) + '"' + (p.id === selectedId ? " selected" : "") + ">" + esc(p.sku + " - " + p.name) + "</option>";
   });

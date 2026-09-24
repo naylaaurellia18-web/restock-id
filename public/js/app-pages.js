@@ -439,27 +439,49 @@ P.transactions = function () {
     '<div class="field full"><button class="btn btn-yellow" type="submit">Catat Stok Keluar</button></div>' +
     "</form></div></div>";
 
-  html += '<div class="card card-pad section-gap"><div class="row-between">' +
-    '<h3 class="card-title" style="margin:0">Riwayat Transaksi</h3>' +
+  html += '<div class="card card-pad section-gap">' +
+    '<div class="row-between mb12">' +
+    '<div><h3 class="card-title" style="margin:0">Riwayat Transaksi</h3>' +
+    '<p class="card-sub" style="margin:2px 0 0">Filter &amp; kelola seluruh pergerakan stok.</p></div>' +
     '<div class="row">' +
     '<button class="btn btn-ghost btn-sm" onclick="A.downloadTxTemplate()">Template CSV</button>' +
     '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'impFile\').click()">Import CSV</button>' +
     '<input type="file" id="impFile" accept=".csv,text/csv" class="hidden" onchange="A.importCSV(this)">' +
     '<button class="btn btn-outline btn-sm" onclick="A.exportTx()">Ekspor CSV</button>' +
     "</div></div>" +
-    '<div class="row mb12 mt8">' +
-    '<input type="date" id="txFrom" placeholder="Dari" onchange="A.filterTx()"> <span class="text-muted">s/d</span> ' +
-    '<input type="date" id="txTo" onchange="A.filterTx()"> ' +
-    '<select id="txProd" onchange="A.filterTx()">' + productSelect("", "txProd").replace('id="psel_txProd"', 'id="txProd"') + "</select>" +
-    '<select id="txType" onchange="A.filterTx()"><option value="">Semua jenis</option><option value="in">Masuk</option><option value="out">Keluar</option></select>' +
-    '<button class="btn btn-ghost btn-sm" onclick="A.resetTx()">Reset</button>' +
+
+    '<div class="filter-bar">' +
+    '<div class="filter-field">' +
+    '<label for="txFrom">Dari tanggal</label>' +
+    '<input type="date" id="txFrom" onchange="A.filterTx()">' +
     "</div>" +
+    '<div class="filter-field">' +
+    '<label for="txTo">Sampai tanggal</label>' +
+    '<input type="date" id="txTo" onchange="A.filterTx()">' +
+    "</div>" +
+    '<div class="filter-field filter-grow">' +
+    '<label for="txProd">Produk</label>' +
+    productSelect("", "txProd", "Semua produk").replace('id="psel_txProd"', 'id="txProd"').replace('name="txProd"', 'name="txProd" onchange="A.filterTx()"') +
+    "</div>" +
+    '<div class="filter-field">' +
+    '<label for="txType">Jenis</label>' +
+    '<select id="txType" onchange="A.filterTx()">' +
+    '<option value="">Semua jenis</option>' +
+    '<option value="in">Masuk</option>' +
+    '<option value="out">Keluar</option>' +
+    "</select>" +
+    "</div>" +
+    '<div class="filter-field filter-action">' +
+    '<label>&nbsp;</label>' +
+    '<button class="btn btn-ghost" onclick="A.resetTx()">Reset</button>' +
+    "</div>" +
+    "</div>" +
+
     '<div class="table-wrap"><table class="tbl"><thead><tr><th>Tanggal</th><th>SKU</th><th>Nama Produk</th><th>Jenis</th><th class="num">Jumlah</th><th>Keterangan</th></tr></thead>' +
     '<tbody id="txTbl"></tbody></table></div>' +
-    '<div id="txPager" class="row mt8"></div></div>';
+    '<div id="txPager" class="row mt12"></div></div>';
 
   document.getElementById("content").innerHTML = html;
-  document.getElementById("txProd").selectedIndex = -1;
   A.txPage = 1;
   A.filterTx();
 };
@@ -494,7 +516,7 @@ A.filterTx = function () {
 A.resetTx = function () {
   document.getElementById("txFrom").value = "";
   document.getElementById("txTo").value = "";
-  document.getElementById("txProd").selectedIndex = -1;
+  document.getElementById("txProd").value = "";
   document.getElementById("txType").value = "";
   A.filterTx();
 };

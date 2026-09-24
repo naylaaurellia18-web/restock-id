@@ -401,6 +401,36 @@ input.invalid{border-color:var(--red);background:#fef2f2}
 }
 .empty-state b{display:block;color:var(--ink-2);font-size:14.5px;margin-bottom:4px}
 
+/* ===== FILTER BAR ===== */
+.filter-bar{
+  display:flex;flex-wrap:wrap;gap:12px 14px;align-items:flex-end;
+  background:#f8fafc;border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;margin-bottom:16px;
+}
+.filter-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.filter-field label{
+  font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
+}
+.filter-field input[type=date],
+.filter-field select{
+  border:1px solid var(--line-2);border-radius:9px;padding:8px 10px;font-size:13px;
+  font-family:inherit;background:#fff;color:var(--ink);min-width:150px;transition:.15s;
+}
+.filter-field input[type=date]:focus,
+.filter-field select:focus{
+  outline:none;border-color:var(--brand-2);box-shadow:var(--ring);
+}
+.filter-grow{flex:1;min-width:200px}
+.filter-grow select{width:100%;min-width:0}
+.filter-action label{visibility:hidden}
+.filter-action .btn{height:36px;padding:0 16px}
+@media(max-width:768px){
+  .filter-bar{flex-direction:column;align-items:stretch}
+  .filter-field input[type=date],
+  .filter-field select{min-width:0;width:100%}
+  .filter-action .btn{width:100%}
+}
+
 /* ===== RESPONSIVE ===== */
 @media(max-width:1024px){
   .grid-4{grid-template-columns:repeat(2,1fr)}
